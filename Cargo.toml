@@ -1,0 +1,12 @@
+[package]
+name = "advent-of-code"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jason Noonan <jason.t.noonan@gmail.com>"]
+
+[lib]
+bench = false
+
+[dependencies]
+aoc-runner = "0.3.0"
+aoc-runner-derive = "0.3.0"
