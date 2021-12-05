@@ -40,38 +40,31 @@ fn generator(input: &str, diagnols: bool) -> Vec<Point> {
             let end = &chunk[1];
 
             if start.x == end.x {
-                let points = (get_point_range(start.y, end.y))
+                (get_point_range(start.y, end.y))
                     .iter()
-                    .map(|y| Point { x: start.x, y: *y })
-                    .collect::<Vec<Point>>();
-                acc.extend(points);
+                    .for_each(|y| acc.push(Point { x: start.x, y: *y }));
             } else if start.y == end.y {
-                let points = (get_point_range(start.x, end.x))
+                (get_point_range(start.x, end.x))
                     .iter()
-                    .map(|x| Point { x: *x, y: start.y })
-                    .collect::<Vec<Point>>();
-                acc.extend(points);
+                    .for_each(|x| acc.push(Point { x: *x, y: start.y }));
             } else if is_positive_slope(get_slope(start, end)) && diagnols {
                 // slope of 1 means x increases as y increases
                 let x_range = get_point_range(start.x, end.x);
                 let y_range = get_point_range(start.y, end.y);
-                let points = x_range
-                    .iter()
-                    .map(|x| y_range.iter().map(|y| Point { x: *x, y: *y }))
-                    .flatten()
-                    .collect::<Vec<Point>>();
-                acc.extend(points);
+                let mut y = y_range[0];
+                x_range.iter().for_each(|x| {
+                    acc.push(Point { x: *x, y });
+                    y += 1;
+                });
             } else if is_negative_slope(get_slope(start, end)) && diagnols {
                 // slope of -1 means x decreases as y increases
                 let x_range = get_point_range(start.x, end.x);
                 let y_range = get_point_range(start.y, end.y);
-                let points = x_range
-                    .iter()
-                    .rev()
-                    .map(|x| y_range.iter().map(|y| Point { x: *x, y: *y }))
-                    .flatten()
-                    .collect::<Vec<Point>>();
-                acc.extend(points);
+                let mut y = y_range[0];
+                x_range.iter().rev().for_each(|x| {
+                    acc.push(Point { x: *x, y });
+                    y += 1;
+                });
             }
             acc
         })
@@ -86,11 +79,11 @@ fn get_point_range(point1: i32, point2: i32) -> Vec<i32> {
 }
 
 fn is_positive_slope(slope: f32) -> bool {
-    slope >= (1.0 - f32::EPSILON) && slope <= (1.0 + f32::EPSILON)
+    ((1.0 - f32::EPSILON)..(1.0 + f32::EPSILON)).contains(&slope)
 }
 
 fn is_negative_slope(slope: f32) -> bool {
-    slope >= (-1.0 - f32::EPSILON) && slope <= (-1.0 + f32::EPSILON)
+    ((-1.0 - f32::EPSILON)..(-1.0 + f32::EPSILON)).contains(&slope)
 }
 
 fn get_slope(point1: &Point, point2: &Point) -> f32 {
@@ -109,7 +102,6 @@ pub fn part2(input: &[Point]) -> i32 {
 
 fn count_matched_points(input: &[Point]) -> i32 {
     let mut matched_points = Vec::new();
-    println!("{:?}", input);
     input.iter().fold(0, |acc, point| {
         if !matched_points.contains(&point) {
             let count = input.iter().filter(|p| *p == point).count() as i32;
