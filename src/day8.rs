@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-#[aoc_generator(day8)]
+#[aoc_generator(day8, part1)]
 pub fn input_generator(input: &str) -> Vec<u32> {
     let output_values = input
         .lines()
@@ -21,45 +21,172 @@ pub fn part1(input: &[u32]) -> u32 {
     input.iter().filter(|&x| *x <= 4 || *x == 7).count() as u32
 }
 
-pub fn part2(input: &str) -> u32 {
-    let mut digits: HashMap<String, u32> = HashMap::new();
-    digits.insert(String::from("abcdf"), 3);
-    digits.insert(String::from("abcdef"), 9);
-    digits.insert(String::from("abcdeg"), 0);
-    digits.insert(String::from("acdfg"), 2);
-    digits.insert(String::from("bcdef"), 5);
-    digits.insert(String::from("bcdefg"), 6);
+pub struct AnalogDisplay {
+    pub top: char,
+    pub middle: char,
+    pub bottom: char,
+    pub top_left: char,
+    pub top_right: char,
+    pub bottom_left: char,
+    pub bottom_right: char,
+}
 
-    let output_values = input
-        .lines()
-        .map(|line| line.split('|').nth(1).unwrap())
-        .collect::<Vec<&str>>();
+#[aoc(day8, part2)]
+fn part2(input: &str) -> u32 {
+    let mut num_vec: Vec<HashSet<char>> = vec![
+        HashSet::from_iter(vec!['x'; 6].iter().cloned()),
+        HashSet::from_iter(vec!['x'; 2].iter().cloned()),
+        HashSet::from_iter(vec!['x'; 5].iter().cloned()),
+        HashSet::from_iter(vec!['x'; 5].iter().cloned()),
+        HashSet::from_iter(vec!['x'; 4].iter().cloned()),
+        HashSet::from_iter(vec!['x'; 5].iter().cloned()),
+        HashSet::from_iter(vec!['x'; 6].iter().cloned()),
+        HashSet::from_iter(vec!['x'; 3].iter().cloned()),
+        HashSet::from_iter(vec!['a', 'b', 'c', 'd', 'e', 'f', 'g'].iter().cloned()),
+        HashSet::from_iter(vec!['x'; 6].iter().cloned()),
+    ];
 
     let mut sum: u32 = 0;
 
-    for line in output_values {
-        let mut num_string: Vec<String> = Vec::new();
+    for line in input.lines() {
+        let values = line.split('|').collect::<Vec<&str>>();
+        let words = values[0].split_whitespace().collect::<Vec<&str>>();
 
-        for word in line.split_whitespace() {
-            let num;
+        for word in words.to_owned() {
             match word.len() {
-                2 => num = 1,
-                3 => num = 7,
-                4 => num = 4,
-                7 => num = 8,
-                _ => {
-                    let mut sorted: Vec<char> = word.chars().collect();
-                    sorted.sort_unstable();
-                    let s = sorted.into_iter().collect::<String>();
-                    println!("{}", s);
-                    num = *digits.get(&s).unwrap();
-                }
+                2 => num_vec[1] = word.chars().collect(),
+                3 => num_vec[7] = word.chars().collect(),
+                4 => num_vec[4] = word.chars().collect(),
+                7 => num_vec[8] = word.chars().collect(),
+                _ => {}
             }
-
-            num_string.push(num.to_string());
         }
 
-        sum += num_string.join("").parse::<u32>().unwrap();
+        let mut analog_display = AnalogDisplay {
+            top: ' ',
+            middle: ' ',
+            bottom: ' ',
+            top_left: ' ',
+            top_right: ' ',
+            bottom_left: ' ',
+            bottom_right: ' ',
+        };
+
+        let in_4_not_1: HashSet<_> = num_vec[4].difference(&num_vec[1]).cloned().collect();
+        let in_7_not_1: HashSet<_> = num_vec[7].difference(&num_vec[1]).cloned().collect();
+        analog_display.top = *in_7_not_1.iter().next().unwrap();
+
+        // find 5
+        for word in words.to_owned().iter().filter(|word| word.len() == 5) {
+            let intersection: HashSet<_> = in_4_not_1
+                .intersection(&word.chars().collect())
+                .cloned()
+                .collect();
+            let difference: HashSet<_> = num_vec[1]
+                .difference(&word.chars().collect())
+                .cloned()
+                .collect();
+            if intersection.difference(&difference).count() == 2 {
+                num_vec[5] = word.chars().collect();
+            }
+        }
+
+        // find 6
+        for word in words.to_owned().iter().filter(|word| word.len() == 6) {
+            if num_vec[1]
+                .intersection(&word.chars().collect())
+                .cloned()
+                .count()
+                == 1
+            {
+                num_vec[6] = word.chars().collect();
+            }
+        }
+
+        analog_display.bottom_right = num_vec[6]
+            .intersection(&num_vec[1])
+            .cloned()
+            .next()
+            .unwrap();
+
+        analog_display.top_right = num_vec[1]
+            .iter()
+            .filter(|&x| *x != analog_display.bottom_right)
+            .copied()
+            .next()
+            .unwrap();
+
+        // find 2
+        for word in words.to_owned().iter().filter(|word| word.len() == 5) {
+            if !word.contains(analog_display.bottom_right) {
+                num_vec[2] = word.chars().collect();
+            }
+        }
+
+        let in_2_not_5: HashSet<_> = num_vec[2].difference(&num_vec[5]).cloned().collect();
+
+        analog_display.bottom_left = in_2_not_5.difference(&num_vec[1]).cloned().next().unwrap();
+
+        analog_display.top_left = in_4_not_1.difference(&num_vec[2]).cloned().next().unwrap();
+
+        // find 3
+        for word in words.to_owned().iter().filter(|word| word.len() == 5) {
+            if !word.contains(analog_display.top_left) && !word.contains(analog_display.bottom_left)
+            {
+                num_vec[3] = word.chars().collect();
+            }
+        }
+
+        let in_3_not_1: HashSet<_> = num_vec[3].difference(&num_vec[1]).cloned().collect();
+        let in_3_not_1_4: HashSet<_> = in_3_not_1.difference(&num_vec[4]).cloned().collect();
+        analog_display.bottom = in_3_not_1_4
+            .difference(&num_vec[7])
+            .cloned()
+            .next()
+            .unwrap();
+
+        let exclusions: HashSet<_> = HashSet::from_iter(
+            vec![
+                analog_display.top_left,
+                analog_display.top_right,
+                analog_display.bottom_right,
+            ]
+            .iter()
+            .cloned(),
+        );
+
+        analog_display.middle = num_vec[4].difference(&exclusions).cloned().next().unwrap();
+
+        // find 0
+        for word in words.to_owned().iter().filter(|word| word.len() == 6) {
+            if !word.contains(analog_display.middle) {
+                num_vec[0] = word.chars().collect();
+            }
+        }
+
+        // find 9
+        for word in words.to_owned().iter().filter(|word| word.len() == 6) {
+            if !word.contains(analog_display.bottom_left) {
+                num_vec[9] = word.chars().collect();
+            }
+        }
+
+        let mut num_string: Vec<char> = Vec::new();
+        for output in values[1].split_whitespace() {
+            let temp: HashSet<_> = output.chars().collect();
+
+            num_vec.iter().enumerate().for_each(|(i, characters)| {
+                if temp.len() == characters.len() && temp.difference(characters).count() == 0 {
+                    num_string.push(i.to_string()[..].chars().next().unwrap());
+                }
+            });
+        }
+
+        sum += num_string
+            .into_iter()
+            .collect::<String>()
+            .parse::<u32>()
+            .unwrap();
     }
 
     sum
