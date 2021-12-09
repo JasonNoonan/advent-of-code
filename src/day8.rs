@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 #[aoc_generator(day8, part1)]
 pub fn input_generator(input: &str) -> Vec<u32> {
