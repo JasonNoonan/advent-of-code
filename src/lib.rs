@@ -1,3 +1,4 @@
+use aoc_runner_derive::aoc_lib;
 extern crate aoc_runner;
 
 #[macro_use]
