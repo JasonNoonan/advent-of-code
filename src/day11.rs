@@ -8,9 +8,10 @@ pub fn part1(input: &str) -> u32 {
             .for_each(|c| row.push(c));
         result.push(row);
     });
-    calculate_flashes(&mut result, 100)
+    calculate_flashes_over_steps(&mut result, 100)
 }
 
+#[aoc(day11, part2)]
 pub fn part2(input: &str) -> u32 {
     let mut result: Vec<Vec<u32>> = Vec::new();
     input.lines().for_each(|line| {
@@ -21,28 +22,53 @@ pub fn part2(input: &str) -> u32 {
         result.push(row);
     });
 
-    0
+    get_step_count_until_count_increase(&mut result, 100)
 }
 
-fn calculate_flashes(input: &mut [Vec<u32>], steps: u32) -> u32 {
+fn get_step_count_until_count_increase(input: &mut [Vec<u32>], target_increase: u32) -> u32 {
+    let mut step_count = 0;
+    loop {
+        step_count += 1;
+        if count_flashes(input) >= target_increase {
+            break;
+        }
+    }
+
+    step_count
+}
+
+fn calculate_flashes_over_steps(input: &mut [Vec<u32>], steps: u32) -> u32 {
     let mut count: u32 = 0;
     for _ in 0..steps {
-        for y in 0..input.len() {
-            for x in 0..input[y].len() {
-                increment_point(input, x, y);
-            }
-        }
+        count += count_flashes(input);
+    }
+    count
+}
 
-        for y in 0..input.len() {
-            for x in 0..input[y].len() {
-                if input[y][x] >= 10 {
-                    count += 1;
-                    input[y][x] = 0;
-                }
+fn count_flashes(input: &mut [Vec<u32>]) -> u32 {
+    increment_all_points(input);
+
+    count_and_reset(input)
+}
+fn count_and_reset(input: &mut [Vec<u32>]) -> u32 {
+    let mut count: u32 = 0;
+    for y in input {
+        for x in 0..y.len() {
+            if y[x] >= 10 {
+                count += 1;
+                y[x] = 0;
             }
         }
     }
     count
+}
+
+fn increment_all_points(input: &mut [Vec<u32>]) {
+    for y in 0..input.len() {
+        for x in 0..input[y].len() {
+            increment_point(input, x, y);
+        }
+    }
 }
 
 fn increment_point(input: &mut [Vec<u32>], x: usize, y: usize) {
@@ -101,7 +127,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let mut input = generate_input(INPUT);
-        assert_eq!(part1(&mut input), 1656);
+        assert_eq!(part1(INPUT), 1656);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(INPUT), 195);
     }
 }
