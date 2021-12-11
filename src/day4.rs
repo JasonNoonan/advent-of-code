@@ -17,7 +17,7 @@ impl Board {
             for cell in row {
                 result.push_str(&cell.to_string());
             }
-            result.push_str("\n");
+            result.push('\n');
         }
         result
     }
