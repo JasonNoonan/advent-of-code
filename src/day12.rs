@@ -38,21 +38,38 @@ pub fn input_generator(input: &str) -> System {
 #[aoc(day12, part1)]
 pub fn part1(input: &System) -> u32 {
     let visited = HashSet::new();
-    check_paths(input, &visited, "start".to_string())
+    check_paths(input, &visited, "start".to_string(), false)
 }
 
-fn check_paths(system: &System, visited: &HashSet<String>, source: String) -> u32 {
-    // we have visited this room before
-    if visited.contains(&source) {
-        // and it is a small room
-        if *system.nodes.get(&source).unwrap() {
-            return 0;
-        }
-    }
+#[aoc(day12, part2)]
+pub fn part2(input: &System) -> u32 {
+    let visited = HashSet::new();
+    check_paths(input, &visited, "start".to_string(), true)
+}
+
+fn check_paths(system: &System, visited: &HashSet<String>, source: String, safety: bool) -> u32 {
+    let mut safety = safety;
 
     // we found the end!
     if source == "end" {
         return 1;
+    }
+
+    // we have visited this room before, check for dead paths
+    if visited.contains(&source) {
+        // can't repeat start
+        if source == "start" {
+            return 0;
+        }
+        // and it is a small room
+        else if *system.nodes.get(&source).unwrap() {
+            // hit the same small room twice
+            if safety {
+                safety = !safety;
+            } else {
+                return 0;
+            }
+        }
     }
 
     let mut local_visited = visited.clone();
@@ -63,7 +80,7 @@ fn check_paths(system: &System, visited: &HashSet<String>, source: String) -> u3
         .get(&source)
         .unwrap()
         .iter()
-        .map(|child| check_paths(system, &local_visited, child.to_string()))
+        .map(|child| check_paths(system, &local_visited, child.to_string(), safety))
         .sum()
 }
 
@@ -94,6 +111,12 @@ start-RW
     #[test]
     fn test_part1() {
         let input = input_generator(INPUT);
-        assert_eq!(part1(input), 226);
+        assert_eq!(part1(&input), 226);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = input_generator(INPUT);
+        assert_eq!(part2(&input), 3509);
     }
 }
