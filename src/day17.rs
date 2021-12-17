@@ -53,15 +53,15 @@ impl Probe {
         false
     }
 
-    pub fn fire(&mut self, other: &Target) -> isize {
+    pub fn fire(&mut self, other: &Target) -> Option<isize> {
         loop {
             self.step();
             if self.check(other) {
-                return self.steps.iter().map(|p| p.y).max().unwrap() as isize;
+                return Some(self.steps.iter().map(|p| p.y).max().unwrap() as isize);
             }
 
             if other.x_max < self.x || self.y < other.y_min {
-                return i64::MAX as isize;
+                return None;
             }
         }
     }
@@ -116,14 +116,8 @@ fn aim_and_fire(target: &Target, max: isize, min: isize) -> Vec<isize> {
 
     probes
         .iter_mut()
-        .filter_map(|p| {
-            let result = p.fire(target);
-            if result != i64::MAX as isize {
-                Some(result)
-            } else {
-                None
-            }
-        })
+        .map(|p| p.fire(target))
+        .flatten()
         .collect::<Vec<isize>>()
 }
 
