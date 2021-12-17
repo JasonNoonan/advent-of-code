@@ -61,7 +61,7 @@ impl Probe {
             }
 
             if other.x_max < self.x || self.y < other.y_min {
-                return 0;
+                return i64::MAX as isize;
             }
         }
     }
@@ -96,23 +96,35 @@ pub fn input_generator(input: &str) -> Target {
 
 #[aoc(day17, part1)]
 pub fn part1(target: &Target) -> isize {
-    println!("{:?}", target);
+    *aim_and_fire(target, 100, -100).iter().max().unwrap()
+}
+
+#[aoc(day17, part2)]
+pub fn part2(target: &Target) -> isize {
+    aim_and_fire(target, 500, -500).len() as isize
+}
+
+fn aim_and_fire(target: &Target, max: isize, min: isize) -> Vec<isize> {
     let mut probes = Vec::new();
-    let mut success: Vec<isize> = Vec::new();
 
     // don't shoot behind us...
-    for vel_x in 0..100 {
-        for vel_y in -100..100 {
-            let probe = Probe::new(vel_x, vel_y);
-            probes.push(probe);
+    for vel_x in 0..max {
+        for vel_y in min..max {
+            probes.push(Probe::new(vel_x, vel_y));
         }
     }
 
-    for probe in probes.iter_mut() {
-        success.push(probe.fire(target));
-    }
-
-    *success.iter().max().unwrap()
+    probes
+        .iter_mut()
+        .filter_map(|p| {
+            let result = p.fire(target);
+            if result != i64::MAX as isize {
+                Some(result)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<isize>>()
 }
 
 #[cfg(test)]
@@ -126,5 +138,11 @@ mod tests {
     fn test_part1() {
         let input = input_generator(INPUT);
         assert_eq!(part1(&input), 45);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = input_generator(INPUT);
+        assert_eq!(part2(&input), 112);
     }
 }
