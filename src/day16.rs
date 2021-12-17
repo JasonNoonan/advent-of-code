@@ -6,6 +6,7 @@ pub struct Packet {
     pub type_id: usize,
     pub value: usize,
     pub packets: Vec<Packet>,
+    // pub len: usize,
 }
 
 // #[aoc_generator(day16)]
