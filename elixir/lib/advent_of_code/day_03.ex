@@ -7,7 +7,25 @@ defmodule AdventOfCode.Day03 do
     |> dbg()
   end
 
-  def part2(_args) do
+  def part2(args) do
+    args
+    |> String.split("\n", trim: true)
+    |> Enum.chunk_every(3)
+    |> Enum.map(fn [a, b, c] ->
+      IO.puts('just a test')
+      a = String.graphemes(a)
+      b = String.graphemes(b)
+      c = String.graphemes(c)
+
+      uniquely_a_from_b = a -- b
+      shared_in_a_and_b = a -- uniquely_a_from_b
+
+      uniquely_c = c -- shared_in_a_and_b
+      badge = (c -- uniquely_c) |> Enum.uniq() |> Enum.join()
+      get_index_of_char(badge) + 1
+    end)
+    |> Enum.sum()
+    |> dbg()
   end
 
   def sort_sacks(rucksack) do
