@@ -12,16 +12,12 @@ defmodule AdventOfCode.Day03 do
     |> String.split("\n", trim: true)
     |> Enum.chunk_every(3)
     |> Enum.map(fn [a, b, c] ->
-      IO.puts('just a test')
-      a = String.graphemes(a)
-      b = String.graphemes(b)
-      c = String.graphemes(c)
+      a = String.graphemes(a) |> MapSet.new()
+      b = String.graphemes(b) |> MapSet.new()
+      c = String.graphemes(c) |> MapSet.new()
 
-      uniquely_a_from_b = a -- b
-      shared_in_a_and_b = a -- uniquely_a_from_b
+      badge = MapSet.intersection(a, MapSet.intersection(b, c)) |> Enum.uniq() |> Enum.join()
 
-      uniquely_c = c -- shared_in_a_and_b
-      badge = (c -- uniquely_c) |> Enum.uniq() |> Enum.join()
       get_index_of_char(badge) + 1
     end)
     |> Enum.sum()
@@ -30,14 +26,13 @@ defmodule AdventOfCode.Day03 do
 
   def sort_sacks(rucksack) do
     length = String.length(rucksack)
-    char_list = split_characters(rucksack)
+    char_list = String.graphemes(rucksack)
 
     half = Integer.floor_div(length, 2)
-    c1 = Enum.take(char_list, half)
-    c2 = Enum.take(char_list, half * -1)
+    c1 = Enum.take(char_list, half) |> MapSet.new()
+    c2 = Enum.take(char_list, half * -1) |> MapSet.new()
+    diff = MapSet.intersection(c1, c2) |> Enum.uniq() |> Enum.join()
 
-    not_in_list_2 = c1 -- c2
-    diff = (c1 -- not_in_list_2) |> Enum.uniq() |> Enum.join()
     get_index_of_char(diff) + 1
   end
 
