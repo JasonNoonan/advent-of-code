@@ -1,20 +1,22 @@
 defmodule AdventOfCode.Day04 do
   def part1(args) do
-    args
-    |> split_to_component_sectors()
-    |> Stream.filter(fn [[a, b], [y, z]] ->
-      either_fully_contains(Range.new(a, b), Range.new(y, z))
-    end)
-    |> Enum.count()
+    for [[a, b], [y, z]] <- split_to_component_sectors(args),
+        a = Range.new(a, b),
+        b = Range.new(y, z),
+        reduce: 0 do
+      acc ->
+        acc + if either_fully_contains(a, b), do: 1, else: 0
+    end
   end
 
   def part2(args) do
-    args
-    |> split_to_component_sectors()
-    |> Stream.filter(fn [[a, b], [y, z]] ->
-      !Range.disjoint?(Range.new(a, b), Range.new(y, z))
-    end)
-    |> Enum.count()
+    for [[a, b], [y, z]] <- split_to_component_sectors(args),
+        a = Range.new(a, b),
+        b = Range.new(y, z),
+        reduce: 0 do
+      acc ->
+        acc + if Range.disjoint?(a, b), do: 0, else: 1
+    end
   end
 
   @doc """
