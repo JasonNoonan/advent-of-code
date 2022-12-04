@@ -1,11 +1,10 @@
 defmodule AdventOfCode.Day03 do
   def part1(args) do
     args
-    |> split_lines()
+    |> String.split("\n", trim: true)
     |> Enum.reduce([], fn rucksack, acc ->
       length = String.length(rucksack)
       half = Integer.floor_div(length, 2)
-
       {c1, c2} = String.split_at(rucksack, half)
       diff = MapSet.intersection(to_mapset(c1), to_mapset(c2)) |> Enum.uniq() |> to_string()
 
@@ -28,7 +27,6 @@ defmodule AdventOfCode.Day03 do
       [get_index_of_char(badge) | acc]
     end)
     |> Enum.sum()
-    |> dbg()
   end
 
   def split_lines(args) do

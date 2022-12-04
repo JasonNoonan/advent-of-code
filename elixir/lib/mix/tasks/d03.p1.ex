@@ -12,6 +12,8 @@ defmodule Mix.Tasks.D03.P1 do
       else:
         input
         |> part1()
-        |> IO.inspect(label: "Part 1 Results")
+        |> dbg()
+
+    # |> IO.inspect(label: "Part 1 Results")
   end
 end
