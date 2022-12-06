@@ -49,7 +49,7 @@ defmodule AdventOfCode.Day06 do
   """
   def get_index(input, size) do
     indexes =
-      for {_, index} <- input |> Enum.with_index(),
+      for {_, index} <- Enum.with_index(input),
           slice = Enum.slice(input, index, size),
           uniq = Enum.uniq(slice),
           reduce: [] do
