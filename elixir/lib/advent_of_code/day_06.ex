@@ -51,11 +51,10 @@ defmodule AdventOfCode.Day06 do
     indexes =
       for {_, index} <- input |> Enum.with_index(),
           slice = Enum.slice(input, index, size),
-          sorted = Enum.sort(slice),
-          dedupe = Enum.dedup(sorted),
+          uniq = Enum.uniq(slice),
           reduce: [] do
         acc ->
-          if Enum.count(dedupe) == size,
+          if Enum.count(uniq) == size,
             do: [index + size | acc],
             else: acc
       end
