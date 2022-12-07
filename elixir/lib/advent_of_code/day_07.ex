@@ -4,6 +4,35 @@ defmodule AdventOfCode.Day07 do
     95437
   """
   def part1(args) do
+    size_map = get_filesystem_sizemap(args)
+
+    for {_, size} <- size_map, reduce: 0 do
+      acc ->
+        acc + if size <= 100_000, do: size, else: 0
+    end
+  end
+
+  @doc """
+    iex> AdventOfCode.Day07.part2("$ cd /\\n$ ls\\ndir a\\n14848514 b.txt\\n8504156 c.dat\\ndir d\\n$ cd a\\n$ ls\\ndir e\\n29116 f\\n2557 g\\n62596 h.lst\\n$ cd e\\n$ ls\\n584 i\\n$ cd ..\\n$ cd ..\\n$ cd d\\n$ ls\\n4060174 j\\n8033020 d.log\\n5626152 d.ext\\n7214296 k\\n")
+    24933642
+  """
+  def part2(args) do
+    size_map = get_filesystem_sizemap(args)
+    used_space = size_map["/"] |> dbg()
+    free_space = (70_000_000 - used_space) |> dbg()
+    target = (30_000_000 - free_space) |> dbg()
+
+    Enum.filter(size_map, fn {_, x} -> x >= target end)
+    |> Enum.map(fn {_, size} -> size end)
+    |> Enum.min()
+    |> dbg()
+  end
+
+  @doc """
+    iex> AdventOfCode.Day07.get_filesystem_sizemap("$ cd /\\n$ ls\\ndir a\\n14848514 b.txt\\n8504156 c.dat\\ndir d\\n$ cd a\\n$ ls\\ndir e\\n29116 f\\n2557 g\\n62596 h.lst\\n$ cd e\\n$ ls\\n584 i\\n$ cd ..\\n$ cd ..\\n$ cd d\\n$ ls\\n4060174 j\\n8033020 d.log\\n5626152 d.ext\\n7214296 k\\n")
+    %{"/" => 48381165, "/a" => 94853, "/a/e" => 584, "/d" => 24933642}
+  """
+  def get_filesystem_sizemap(args) do
     dirs = ["/"]
     files = []
     path = []
@@ -14,24 +43,15 @@ defmodule AdventOfCode.Day07 do
           parse_command(command, acc.path, acc.dirs, acc.files)
       end
 
-    size_map =
-      for dir <- filesystem.dirs, reduce: %{} do
-        acc ->
-          dir_size =
-            Enum.filter(filesystem.files, fn file -> String.starts_with?(file.name, dir) end)
-            |> Enum.map(fn file -> file.size end)
-            |> Enum.sum()
-
-          Map.put(acc, dir, dir_size)
-      end
-
-    for {_, size} <- size_map, reduce: 0 do
+    for dir <- filesystem.dirs, reduce: %{} do
       acc ->
-        acc + if size <= 100_000, do: size, else: 0
-    end
-  end
+        dir_size =
+          Enum.filter(filesystem.files, fn file -> String.starts_with?(file.name, dir) end)
+          |> Enum.map(fn file -> file.size end)
+          |> Enum.sum()
 
-  def part2(_args) do
+        Map.put(acc, dir, dir_size)
+    end
   end
 
   @doc """
