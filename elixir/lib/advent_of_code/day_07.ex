@@ -18,14 +18,13 @@ defmodule AdventOfCode.Day07 do
   """
   def part2(args) do
     size_map = get_filesystem_sizemap(args)
-    used_space = size_map["/"] |> dbg()
-    free_space = (70_000_000 - used_space) |> dbg()
-    target = (30_000_000 - free_space) |> dbg()
+    used_space = size_map["/"]
+    free_space = 70_000_000 - used_space
+    target = 30_000_000 - free_space
 
     Enum.filter(size_map, fn {_, x} -> x >= target end)
     |> Enum.map(fn {_, size} -> size end)
     |> Enum.min()
-    |> dbg()
   end
 
   @doc """
