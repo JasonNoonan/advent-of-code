@@ -4,7 +4,10 @@ defmodule AdventOfCode.Day07 do
     95437
   """
   def part1(args) do
-    size_map = get_filesystem_sizemap(args)
+    size_map =
+      get_filesystem_sizemap(args)
+      |> Enum.sort(fn {name, _}, {name2, _} -> name <= name2 end)
+      |> dbg(limit: :infinity)
 
     for {_, size} <- size_map, reduce: 0 do
       acc ->

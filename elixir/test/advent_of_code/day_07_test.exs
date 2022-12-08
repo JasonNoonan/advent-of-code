@@ -1090,7 +1090,7 @@ defmodule AdventOfCode.Day07Test do
   """
   test "part1" do
     input = nil
-    result = part1(@input)
+    result = part1(@input) |> dbg()
 
     assert result == 1
   end
