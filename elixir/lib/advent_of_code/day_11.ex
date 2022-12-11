@@ -27,13 +27,17 @@ defmodule AdventOfCode.Day11 do
     |> Enum.map(&String.to_integer/1)
   end
 
-  def inspect(worry_level, operation, modifier, lower_worry?) do
+  def inspect(worry_level, operation, modifier, lower_worry, common_multiple) do
     modifier = if modifier == "old", do: worry_level, else: String.to_integer(modifier)
 
     during_inspection =
       if operation == "*", do: worry_level * modifier, else: worry_level + modifier
 
-    worry_level = if lower_worry?, do: floor(during_inspection / 3), else: during_inspection
+    worry_level =
+      if lower_worry,
+        do: floor(during_inspection / 3),
+        else: rem(during_inspection, common_multiple)
+
     worry_level
   end
 
@@ -46,7 +50,7 @@ defmodule AdventOfCode.Day11 do
     [worry_level | list] |> Enum.reverse()
   end
 
-  def calculate_round(monkeys, rounds) when rounds > 0 do
+  def calculate_round(monkeys, rounds, lower_worry, common_multiple \\ 0) when rounds > 0 do
     monkeys =
       for i <- 0..(length(monkeys) - 1), reduce: monkeys do
         outer_acc ->
@@ -55,7 +59,8 @@ defmodule AdventOfCode.Day11 do
 
           outer_acc =
             for item <- monkey.starting_items,
-                after_inspection = inspect(item, monkey.operation, monkey.modifier, true),
+                after_inspection =
+                  inspect(item, monkey.operation, monkey.modifier, lower_worry, common_multiple),
                 reduce: outer_acc do
               acc ->
                 target_index =
@@ -78,15 +83,21 @@ defmodule AdventOfCode.Day11 do
           outer_acc
       end
 
-    calculate_round(monkeys, rounds - 1)
+    calculate_round(monkeys, rounds - 1, lower_worry, common_multiple)
   end
 
-  def calculate_round(monkeys, _), do: monkeys
+  def calculate_round(monkeys, _, _, _), do: monkeys
+
+  def get_product_of_dividers(monkeys) do
+    monkeys
+    |> Enum.map(fn m -> m.divider end)
+    |> Enum.product()
+  end
 
   def part1(args) do
     args
     |> parse()
-    |> calculate_round(20)
+    |> calculate_round(20, true)
     |> Enum.map(fn x -> x.count end)
     |> Enum.sort(:desc)
     |> Enum.take(2)
@@ -95,6 +106,20 @@ defmodule AdventOfCode.Day11 do
     |> List.first()
   end
 
-  def part2(_args) do
+  def part2(args) do
+    monkeys =
+      args
+      |> parse()
+
+    common_multiple = get_product_of_dividers(monkeys)
+
+    monkeys
+    |> calculate_round(10_000, false, common_multiple)
+    |> Enum.map(fn x -> x.count end)
+    |> Enum.sort(:desc)
+    |> Enum.take(2)
+    |> Enum.chunk_every(2)
+    |> Enum.map(fn [x, y] -> x * y end)
+    |> List.first()
   end
 end
