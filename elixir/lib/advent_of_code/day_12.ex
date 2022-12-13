@@ -104,10 +104,33 @@ defmodule AdventOfCode.Day12 do
   def part1(args) do
     {graph, start, goal} = parse(args) |> parse_graph()
 
-    path_length = Graph.dijkstra(graph, start, goal) |> length |> dbg
+    path_length = Graph.dijkstra(graph, start, goal) |> length
     path_length - 1
   end
 
-  def part2(_args) do
+  @doc """
+    iex> AdventOfCode.Day12.part2("Sabqponm\\nabcryxxl\\naccszExk\\nacctuvwj\\nabdefghi")
+    29
+  """
+  def part2(args) do
+    mapped_graph = parse(args)
+    oops_all_as = Enum.filter(mapped_graph, fn x -> x.value == "a" end)
+    {graph, _start, goal} = parse_graph(mapped_graph)
+
+    paths =
+      for a <- oops_all_as, reduce: [] do
+        acc ->
+          start_name = to_string(a.x) <> "-" <> to_string(a.y)
+          path = Graph.dijkstra(graph, start_name, goal)
+          [path | acc]
+      end
+      |> Enum.reject(fn x -> is_nil(x) end)
+
+    path_length =
+      Enum.map(paths, fn path -> length(path) end)
+      |> Enum.sort()
+      |> List.first()
+
+    path_length - 1
   end
 end
