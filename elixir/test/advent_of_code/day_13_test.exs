@@ -2,6 +2,7 @@ defmodule AdventOfCode.Day13Test do
   use ExUnit.Case
 
   import AdventOfCode.Day13
+  doctest AdventOfCode.Day13
 
   @tag :skip
   test "part1" do
