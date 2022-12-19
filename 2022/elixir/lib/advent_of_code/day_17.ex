@@ -15,7 +15,13 @@ defmodule AdventOfCode.Day17 do
     # ###
     #  #
 
-    [%Point{x: x + 1, y: y}, %Point{x: x, y: y + 1}, %Point{x: x + 1, y: y + 1}, %Point{x: x + 2, y + 1}, %Point{x: x + 1, y: y + 2}]
+    [
+      %Point{x: x + 1, y: y},
+      %Point{x: x, y: y + 1},
+      %Point{x: x + 1, y: y + 1},
+      %Point{x: x + 2, y: y + 1},
+      %Point{x: x + 1, y: y + 2}
+    ]
   end
 
   def get_points(:L, x, y) do
@@ -23,7 +29,13 @@ defmodule AdventOfCode.Day17 do
     #   #
     #   #
     # ###
-    [%Point{x: x, y: y}, %Point{x: x + 1, y: y}, %Point{x: x + 2, y: y}, %Point{x: x + 2, y: y + 1}, %Point{x: x + 2, y: y + 2}]
+    [
+      %Point{x: x, y: y},
+      %Point{x: x + 1, y: y},
+      %Point{x: x + 2, y: y},
+      %Point{x: x + 2, y: y + 1},
+      %Point{x: x + 2, y: y + 2}
+    ]
   end
 
   def get_points(:l, x, y) do
@@ -32,16 +44,20 @@ defmodule AdventOfCode.Day17 do
     # #
     # #
     # #
-    [%Point{x: x, y: y}, %Point{x: x, y: y + 1},%Point{x: x, y: y + 2},%Point{x: x, y: y + 3}]
+    [%Point{x: x, y: y}, %Point{x: x, y: y + 1}, %Point{x: x, y: y + 2}, %Point{x: x, y: y + 3}]
   end
 
   def get_points(:square, x, y) do
     # square is 4 points 2x2 including bottom left
     # ##
     # ##
-    [%Point{x: x, y: y}, %Point{x: x + 1, y: y},%Point{x: x, y: y + 1},%Point{x: x + 1, y: y + 1}]
+    [
+      %Point{x: x, y: y},
+      %Point{x: x + 1, y: y},
+      %Point{x: x, y: y + 1},
+      %Point{x: x + 1, y: y + 1}
+    ]
   end
-
 
   def spawn(:flat, x, y) do
     get_points(:flat, x, y)
