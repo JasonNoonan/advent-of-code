@@ -3,4 +3,4 @@ import Config
 config :advent_of_code, AdventOfCode.Input,
   allow_network?: true,
   session_cookie:
-    "53616c7465645f5f085d7b0dbcc60209c5d51d5cc56f4bade776b16c26508e3bd59cb83e85b713a91584f7f01770361732655eb430ea1efc1e776d638145edbd"
+    "53616c7465645f5f3b196860a0f52f13a648e4fff6f7f5cbbf543db19012342e171ea7c00d8b6ac1ff51cdf2bbdebf95ae6b4ddbd676c7113dc82026b0c96248"

@@ -33,7 +33,7 @@ defmodule AdventOfCode.Day16 do
     end
   end
 
-  def open_valve(graph, rooms, target) do
+  def open_valve(_graph, _rooms, _target) do
     # set the state of the target room to :open
 
     # for each connection of the current room, update
@@ -46,7 +46,7 @@ defmodule AdventOfCode.Day16 do
 
     graph = Graph.new()
 
-    {graph, rooms} =
+    {graph, _rooms} =
       for line <- String.split(args, "\n", trim: true), reduce: {graph, %{}} do
         {graph, acc} ->
           m = Regex.named_captures(input_regex, line)
@@ -70,7 +70,7 @@ defmodule AdventOfCode.Day16 do
           {graph, acc}
       end
 
-    {response, list} = Graph.to_dot(graph)
+    {_response, list} = Graph.to_dot(graph)
     IO.write(list)
     # get_weighted_paths(graph, rooms, "AA", 30) |> dbg
   end

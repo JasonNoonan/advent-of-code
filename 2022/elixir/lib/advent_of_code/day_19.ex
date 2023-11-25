@@ -51,7 +51,7 @@ defmodule AdventOfCode.Day19 do
   end
 
   def part1(args) do
-    blueprints = parse(args)
+    _blueprints = parse(args)
   end
 
   def part2(_args) do

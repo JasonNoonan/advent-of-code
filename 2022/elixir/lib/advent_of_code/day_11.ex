@@ -50,7 +50,9 @@ defmodule AdventOfCode.Day11 do
     [worry_level | list] |> Enum.reverse()
   end
 
-  def calculate_round(monkeys, rounds, lower_worry, common_multiple \\ 0) when rounds > 0 do
+  def calculate_round(monkeys, rounds, lower_worry, common_multiple \\ 0)
+
+  def calculate_round(monkeys, rounds, lower_worry, common_multiple) when rounds > 0 do
     monkeys =
       for i <- 0..(length(monkeys) - 1), reduce: monkeys do
         outer_acc ->

@@ -84,6 +84,6 @@ defmodule AdventOfCode.Day10 do
     |> IO.puts()
   end
 
-  def draw_screen(pixels) do
+  def draw_screen(_pixels) do
   end
 end
