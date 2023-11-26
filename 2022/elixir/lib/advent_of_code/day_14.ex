@@ -1,29 +1,7 @@
 defmodule AdventOfCode.Day14 do
-  @doc """
-    iex> AdventOfCode.Day14.part1("498,4 -> 498,6 -> 496,6\\n503,4 -> 502,4 -> 502,9 -> 494,9")
-    5
-  """
-  defp map_stones(x, x, y1, y2) do
-    {x, _} = Integer.parse(x)
-    {y1, _} = Integer.parse(y1)
-    {y2, _} = Integer.parse(y2)
-
-    Range.new(Enum.max([y1, y2]), Enum.min([y1, y2]))
-    |> Enum.map(fn y ->
-      {x, y, :stone}
-    end)
-  end
-
-  defp map_stones(x1, x2, y, y) do
-    {x1, _} = Integer.parse(x1)
-    {x2, _} = Integer.parse(x2)
-    {y, _} = Integer.parse(y)
-
-    Range.new(Enum.max([x1, x2]), Enum.min([x1, x2]))
-    |> Enum.map(fn x ->
-      {x, y, :stone}
-    end)
-  end
+  ###############
+  # pathing functions
+  ###############
 
   defp move_down({sx, sy}, map) do
     # find the nearest obstruction straight down
@@ -58,8 +36,17 @@ defmodule AdventOfCode.Day14 do
 
       :blocked ->
         case move_right(pos, map) do
-          {x, y} -> drop({x, y}, map)
-          :blocked -> [{px, py, :sand} | map]
+          {x, y} ->
+            drop({x, y}, map)
+
+          :blocked ->
+            case {px, py} do
+              {500, 0} ->
+                {:end, [{500, 0, :sand} | map]}
+
+              {px, py} ->
+                [{px, py, :sand} | map]
+            end
         end
     end
   end
@@ -74,15 +61,42 @@ defmodule AdventOfCode.Day14 do
     end
   end
 
-  defp emit_sand({sx, sy}, map) do
+  defp emit_sand({sx, sy}, map, count \\ 1) do
     case drop({sx, sy}, map) do
       new_map when is_list(new_map) ->
-        emit_sand({sx, sy}, new_map)
+        emit_sand({sx, sy}, new_map, count + 1)
 
       :end ->
         map
+
+      {:end, map} ->
+        map
     end
   end
+
+  ###############
+  # main
+  ###############
+
+  def part1(args) do
+    map = map_blocks(args)
+
+    emit_sand({500, 0}, map)
+    |> count_sand()
+  end
+
+  def part2(args) do
+    map =
+      map_blocks(args)
+      |> add_floor()
+
+    emit_sand({500, 0}, map)
+    |> count_sand()
+  end
+
+  ###############
+  # non-critical functions
+  ###############
 
   defp map_blocks(args) do
     args
@@ -102,14 +116,52 @@ defmodule AdventOfCode.Day14 do
     |> Enum.uniq()
   end
 
-  def part1(args) do
-    map = map_blocks(args)
+  defp find_floor(map) do
+    {_x, lowest, _} = Enum.max_by(map, fn {_x, y, _material} -> y end)
+    lowest + 2
+  end
 
-    emit_sand({500, 0}, map)
+  defp count_sand(map) do
+    map
     |> Enum.filter(fn {_x, _y, material} -> material == :sand end)
     |> length()
   end
 
-  def part2(_args) do
+  defp add_floor(map) do
+    {{x_min, _, _}, {x_max, _, _}} = Enum.min_max_by(map, fn {x, _, _} -> x end)
+    floor = find_floor(map)
+
+    map_stones(x_min - floor, x_max + floor, floor, floor) ++ map
+  end
+
+  defp to_integer(n) when is_integer(n) do
+    n
+  end
+
+  defp to_integer(n) do
+    {n, _} = Integer.parse(n)
+    n
+  end
+
+  defp map_stones(x, x, y1, y2) do
+    x = to_integer(x)
+    y1 = to_integer(y1)
+    y2 = to_integer(y2)
+
+    Range.new(Enum.max([y1, y2]), Enum.min([y1, y2]))
+    |> Enum.map(fn y ->
+      {x, y, :stone}
+    end)
+  end
+
+  defp map_stones(x1, x2, y, y) do
+    x1 = to_integer(x1)
+    x2 = to_integer(x2)
+    y = to_integer(y)
+
+    Range.new(Enum.max([x1, x2]), Enum.min([x1, x2]))
+    |> Enum.map(fn x ->
+      {x, y, :stone}
+    end)
   end
 end
