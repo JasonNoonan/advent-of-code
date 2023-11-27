@@ -10,9 +10,36 @@ defmodule AdventOfCode.Day23 do
     |> dbg
   end
 
+  def find_neigbors({x, y}, positions) do
+    dirs = %{
+      nw: "#{x - 1},#{y - 1}",
+      n: "#{x},#{y - 1}",
+      ne: "#{x + 1},#{y - 1}",
+      e: "#{x + 1},#{y}",
+      se: "#{x + 1},#{y + 1}",
+      s: "#{x},#{y + 1}",
+      sw: "#{x - 1},#{y + 1}",
+      w: "#{x - 1},#{y}"
+    }
+
+    %{
+      nw: Map.get(positions, dirs.nw),
+      n: Map.get(positions, dirs.n),
+      ne: Map.get(positions, dirs.ne),
+      e: Map.get(positions, dirs.e),
+      se: Map.get(positions, dirs.se),
+      s: Map.get(positions, dirs.s),
+      sw: Map.get(positions, dirs.sw),
+      w: Map.get(positions, dirs.w)
+    }
+  end
+
   def part1(args) do
-    args
-    |> parse()
+    priority = [:n, :s, :w, :e]
+
+    starting_positions =
+      args
+      |> parse()
   end
 
   def part2(_args) do
