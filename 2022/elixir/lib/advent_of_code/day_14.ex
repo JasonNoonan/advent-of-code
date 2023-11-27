@@ -5,9 +5,9 @@ defmodule AdventOfCode.Day14 do
 
   defp move_down({sx, sy}, map) do
     # find the nearest obstruction straight down
-    case Enum.filter(map, fn {x, y, _} -> x == sx and y > sy end) do
+    case Enum.filter(map, fn {{x, y}, _} -> x == sx and y > sy end) do
       blocks when is_list(blocks) and length(blocks) > 0 ->
-        {x, y, _material} = Enum.min_by(blocks, fn {_x, y, _} -> y end)
+        {{x, y}, _material} = Enum.min_by(blocks, fn {{_x, y}, _} -> y end)
         {x, y - 1}
 
       [] ->
@@ -16,15 +16,15 @@ defmodule AdventOfCode.Day14 do
   end
 
   defp move_left({sx, sy}, map) do
-    case Enum.filter(map, fn {x, y, _} -> x == sx - 1 and y == sy + 1 end) do
-      [{_x, _y, _material}] -> :blocked
+    case Enum.filter(map, fn {{x, y}, _} -> x == sx - 1 and y == sy + 1 end) do
+      [{{_x, _y}, _material}] -> :blocked
       [] -> {sx - 1, sy + 1}
     end
   end
 
   defp move_right({sx, sy}, map) do
-    case Enum.filter(map, fn {x, y, _} -> x == sx + 1 and y == sy + 1 end) do
-      [{_x, _y, _material}] -> :blocked
+    case Enum.filter(map, fn {{x, y}, _} -> x == sx + 1 and y == sy + 1 end) do
+      [{{_x, _y}, _material}] -> :blocked
       [] -> {sx + 1, sy + 1}
     end
   end
@@ -42,10 +42,10 @@ defmodule AdventOfCode.Day14 do
           :blocked ->
             case {px, py} do
               {500, 0} ->
-                {:end, [{500, 0, :sand} | map]}
+                {:end, Map.put(map, {500, 0}, :sand)}
 
               {px, py} ->
-                [{px, py, :sand} | map]
+                Map.put(map, {px, py}, :sand)
             end
         end
     end
@@ -61,10 +61,10 @@ defmodule AdventOfCode.Day14 do
     end
   end
 
-  defp emit_sand({sx, sy}, map, count \\ 1) do
+  defp emit_sand({sx, sy}, map) do
     case drop({sx, sy}, map) do
-      new_map when is_list(new_map) ->
-        emit_sand({sx, sy}, new_map, count + 1)
+      new_map when is_map(new_map) ->
+        emit_sand({sx, sy}, new_map)
 
       :end ->
         map
@@ -102,36 +102,34 @@ defmodule AdventOfCode.Day14 do
     args
     |> String.trim()
     |> String.split("\n")
-    |> Enum.map(fn block ->
+    |> Enum.reduce(%{}, fn block, acc ->
       block
       |> String.split(" -> ")
       |> Enum.chunk_every(2, 1, :discard)
-      |> Enum.map(fn [first, second] ->
+      |> Enum.reduce(acc, fn [first, second], inner_acc ->
         [x1, y1] = String.split(first, ",")
         [x2, y2] = String.split(second, ",")
-        map_stones(x1, x2, y1, y2)
+        Map.merge(inner_acc, map_stones(x1, x2, y1, y2))
       end)
     end)
-    |> List.flatten()
-    |> Enum.uniq()
   end
 
   defp find_floor(map) do
-    {_x, lowest, _} = Enum.max_by(map, fn {_x, y, _material} -> y end)
+    {{_x, lowest}, _} = Enum.max_by(map, fn {{_x, y}, _material} -> y end)
     lowest + 2
   end
 
   defp count_sand(map) do
     map
-    |> Enum.filter(fn {_x, _y, material} -> material == :sand end)
+    |> Enum.filter(fn {{_x, _y}, material} -> material == :sand end)
     |> length()
   end
 
   defp add_floor(map) do
-    {{x_min, _, _}, {x_max, _, _}} = Enum.min_max_by(map, fn {x, _, _} -> x end)
+    {{{x_min, _}, _}, {{x_max, _}, _}} = Enum.min_max_by(map, fn {{x, _}, _} -> x end)
     floor = find_floor(map)
 
-    map_stones(x_min - floor, x_max + floor, floor, floor) ++ map
+    Map.merge(map, map_stones(x_min - floor, x_max + floor, floor, floor))
   end
 
   defp to_integer(n) when is_integer(n) do
@@ -149,8 +147,8 @@ defmodule AdventOfCode.Day14 do
     y2 = to_integer(y2)
 
     Range.new(Enum.max([y1, y2]), Enum.min([y1, y2]))
-    |> Enum.map(fn y ->
-      {x, y, :stone}
+    |> Enum.reduce(%{}, fn y, acc ->
+      Map.put(acc, {x, y}, :stone)
     end)
   end
 
@@ -160,8 +158,8 @@ defmodule AdventOfCode.Day14 do
     y = to_integer(y)
 
     Range.new(Enum.max([x1, x2]), Enum.min([x1, x2]))
-    |> Enum.map(fn x ->
-      {x, y, :stone}
+    |> Enum.reduce(%{}, fn x, acc ->
+      Map.put(acc, {x, y}, :stone)
     end)
   end
 end
