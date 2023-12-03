@@ -22,12 +22,10 @@ defmodule AdventOfCode.Day03 do
   # and reset current state
   def build_number_range({{num_list, pos_list}, state}, _coords, _target, schematic)
       when length(num_list) > 0 do
-    num = Enum.reverse(num_list) |> List.to_string()
-    pos = pos_list |> Enum.reverse()
-
     if has_adjacent_symbol?(pos_list, schematic) do
-      state = Map.put(state, num, pos)
-      {{}, state}
+      num = Enum.reverse(num_list) |> List.to_string()
+      pos = pos_list |> Enum.reverse()
+      {{}, [{num, pos} | state]}
     else
       {{}, state}
     end
@@ -57,27 +55,66 @@ defmodule AdventOfCode.Day03 do
     {{{_, y_min}, _}, {{_, y_max}, _}} = Enum.min_max_by(map, fn {{_, y}, _} -> y end)
 
     {{}, valid_numbers} =
-      for y <- y_min..y_max, x <- x_min..x_max, reduce: {{}, %{}} do
+      for y <- y_min..y_max, x <- x_min..x_max, reduce: {{}, []} do
         {curr_range, acc} ->
           value = Map.get(map, {x, y})
           build_number_range({curr_range, acc}, {x, y}, value, map)
       end
 
-    Map.keys(valid_numbers)
+    valid_numbers
+  end
+
+  def get_gear_positions(map) do
+    Map.filter(map, fn {_pos, value} ->
+      value == "*"
+    end)
   end
 
   def part1(args) do
     args
     |> Helpers.lines()
-    |> Enum.map(fn line ->
-      String.codepoints(line)
-    end)
+    |> Enum.map(&String.codepoints/1)
     |> Helpers.list_to_map()
     |> get_number_ranges()
-    |> Enum.map(&String.to_integer/1)
+    |> Enum.map(fn {num, _positions} -> String.to_integer(num) end)
     |> Enum.sum()
   end
 
-  def part2(_args) do
+  def part2(args) do
+    map =
+      args
+      |> Helpers.lines()
+      |> Enum.map(&String.codepoints/1)
+      |> Helpers.list_to_map()
+
+    num_tuple = get_number_ranges(map)
+
+    for {pos, _gear} <- get_gear_positions(map), reduce: [] do
+      acc ->
+        neighbors =
+          for {pos, _value} <-
+                Helpers.get_adj(map, pos)
+                |> Map.filter(fn {_pos, x} -> is_string_integer(x) end),
+              reduce: [] do
+            inner_acc ->
+              [{_value, _pos_list} = neighbor] =
+                Enum.filter(num_tuple, fn {_num, position} -> pos in position end)
+
+              [neighbor | inner_acc]
+          end
+          |> Enum.uniq()
+
+        if length(neighbors) == 2 do
+          product =
+            neighbors
+            |> Enum.map(fn {x, _pos} -> String.to_integer(x) end)
+            |> Enum.product()
+
+          [product | acc]
+        else
+          acc
+        end
+    end
+    |> Enum.sum()
   end
 end
