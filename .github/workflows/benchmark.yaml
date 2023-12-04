@@ -1,0 +1,29 @@
+name: Benchmark
+
+on: push
+
+jobs:
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./2023/elixir
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Setup
+        run: mix do deps.get, compile
+
+      - name: Benchmark Part 1
+        run: mix d04.p1 -b
+
+      - name: Benchmark Part 2
+        run: mix d04.p2 -b
