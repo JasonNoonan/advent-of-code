@@ -23,4 +23,4 @@ erl_crash.dump
 advent_of_code_2018-*.tar
 
 # Ignore configuration secrets
-/config/secrets.exs
+# /config/secrets.exs
