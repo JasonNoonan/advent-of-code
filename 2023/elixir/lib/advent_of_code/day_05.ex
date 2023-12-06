@@ -28,7 +28,7 @@ defmodule AdventOfCode.Day05 do
   end
 
   def get_map_from_list([target | maps]) do
-    {get_map(target), maps}
+    {get_map_ranges(target), maps}
   end
 
   def convert(source, target_list) do
