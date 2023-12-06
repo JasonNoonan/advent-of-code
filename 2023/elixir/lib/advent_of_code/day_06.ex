@@ -21,6 +21,15 @@ defmodule AdventOfCode.Day06 do
     |> Enum.product()
   end
 
-  def part2(_args) do
+  def part2(args) do
+    for line <- lines(args) do
+      [_header | rest] = String.replace(line, " ", "") |> String.split(":")
+
+      Enum.map(rest, &String.to_integer/1)
+    end
+    |> Enum.zip_reduce([], fn elements, acc -> [List.to_tuple(elements) | acc] end)
+    |> Enum.map(fn {time, distance} -> calculate_possible_distances(time, distance) end)
+    |> List.flatten()
+    |> length()
   end
 end
