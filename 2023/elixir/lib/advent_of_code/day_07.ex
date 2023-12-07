@@ -49,9 +49,9 @@ defmodule AdventOfCode.Day07 do
           end
       end
     end)
-    |> Enum.with_index()
+    |> Enum.with_index(1)
     |> Enum.reduce(0, fn {%{bid: bid}, rank}, acc ->
-      acc + bid * (rank + 1)
+      acc + bid * rank
     end)
   end
 
