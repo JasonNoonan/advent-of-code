@@ -197,6 +197,14 @@ defmodule AdventOfCode.Helpers do
     end
   end
 
+  def least_common_multiple(list) do
+    list
+    |> Enum.reduce(1, fn x, acc ->
+      (acc * x)
+      |> Integer.floor_div(Integer.gcd(x, acc))
+    end)
+  end
+
   defmodule Graph do
     @moduledoc """
      A simple graph data structure with edges and vertices

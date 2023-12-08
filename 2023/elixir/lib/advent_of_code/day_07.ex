@@ -64,7 +64,7 @@ defmodule AdventOfCode.Day07 do
 
         grouped_count =
           Enum.group_by(card_list, fn x -> x end)
-          |> Enum.reduce([], fn {val, occurrences}, acc ->
+          |> Enum.reduce([], fn {_val, occurrences}, acc ->
             [length(occurrences) | acc]
           end)
           |> Enum.sort(:desc)

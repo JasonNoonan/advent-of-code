@@ -75,7 +75,7 @@ defmodule AdventOfCode.Day08 do
   def move_direction(map, curr, "R"), do: get_in(map, [curr, :right])
 
   @doc """
-  iex> find_path(%{0 => "L", 1 => "R"}, %{"AAA" => %{left: "BBB", right: "CCC"}, "BBB" => %{left: "DDD", right: "EEE"}, "EEE" => %{left: "EEE", right: "EEE"}}, "AAA", "EEE")
+  iex> find_path(%{0 => "L", 1 => "R"}, %{"AAA" => %{left: "BBB", right: "CCC"}, "BBB" => %{left: "DDD", right: "EEE"}, "EEE" => %{left: "EEE", right: "EEE"}}, "AAA", fn x -> x == "EEE" end)
   ["EEE", "BBB"]
   """
   def find_path(directions, map, current, target) do
@@ -83,13 +83,15 @@ defmodule AdventOfCode.Day08 do
     find_path(directions, pos, 0, map, current, target, [])
   end
 
-  def find_path(_dir, _dv, _dp, _map, current, current, visited), do: visited
-
   def find_path(directions, d_val, d_pos, map, current, target, visited) do
-    current = move_direction(map, current, d_val)
-    visited = [current | visited]
-    {dir, pos} = next_direction(directions, d_pos)
-    find_path(directions, dir, pos, map, current, target, visited)
+    if target.(current) do
+      visited
+    else
+      current = move_direction(map, current, d_val)
+      visited = [current | visited]
+      {dir, pos} = next_direction(directions, d_pos)
+      find_path(directions, dir, pos, map, current, target, visited)
+    end
   end
 
   def part1(args) do
@@ -98,10 +100,36 @@ defmodule AdventOfCode.Day08 do
     directions = split_directions(directions)
     nodes = convert_nodes(nodes)
 
-    path = find_path(directions, nodes, "AAA", "ZZZ")
+    path = find_path(directions, nodes, "AAA", fn x -> x == "ZZZ" end)
     length(path)
   end
 
-  def part2(_args) do
+  def part2(args) do
+    [directions, nodes] = String.split(args, "\n\n", trim: true)
+
+    directions = split_directions(directions)
+    nodes = convert_nodes(nodes)
+    starting = find_nodes_ending_with(nodes, "A")
+
+    for node <- starting do
+      path = find_path(directions, nodes, node, fn x -> String.ends_with?(x, "Z") end)
+      length(path)
+    end
+    |> least_common_multiple()
+  end
+
+  @doc """
+  iex> find_nodes_ending_with(%{"AAA" => %{}, "BBB" => %{}, "CCA" => %{}}, "A")
+  ["CCA", "AAA"]
+  """
+  def find_nodes_ending_with(nodes, target) do
+    nodes
+    |> Enum.reduce([], fn {node, _sub}, acc ->
+      if String.ends_with?(node, target) do
+        [node | acc]
+      else
+        acc
+      end
+    end)
   end
 end
