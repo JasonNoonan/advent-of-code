@@ -205,6 +205,10 @@ defmodule AdventOfCode.Helpers do
     end)
   end
 
+  def slide(enum, window \\ 2, every \\ 1, option \\ :discard) do
+    Enum.chunk_every(enum, window, every, option)
+  end
+
   defmodule Graph do
     @moduledoc """
      A simple graph data structure with edges and vertices
