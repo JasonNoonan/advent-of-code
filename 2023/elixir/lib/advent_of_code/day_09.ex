@@ -40,6 +40,18 @@ defmodule AdventOfCode.Day09 do
     |> Enum.sum()
   end
 
-  def part2(_args) do
+  def part2(args) do
+    for line <- lines(args) do
+      history =
+        line
+        |> String.split(" ")
+        |> Enum.map(&String.to_integer/1)
+
+      reduce_to_zero([history])
+      |> Enum.reduce(0, fn h, acc ->
+        List.first(h) - acc
+      end)
+    end
+    |> Enum.sum()
   end
 end
