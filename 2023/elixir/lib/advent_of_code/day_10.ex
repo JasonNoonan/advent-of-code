@@ -50,7 +50,8 @@ defmodule AdventOfCode.Day10 do
       else
         next = hd(next)
         {dx, dy} = delta(next)
-        move(map, {x + dx, y + dy}, from(next), steps + 1, start)
+        delta = {x + dx, y + dy}
+        move(map, delta, from(next), MapSet.put(steps, delta), start)
       end
     end
   end
@@ -73,7 +74,7 @@ defmodule AdventOfCode.Day10 do
       if is_nil(next) or length(next) > 1 or length(next) == 0 do
         nil
       else
-        move(map, delta, from, 1, start)
+        move(map, delta, from, MapSet.new([delta, start]), start)
       end
     end
   end
@@ -98,12 +99,65 @@ defmodule AdventOfCode.Day10 do
     start = find_start(map)
 
     find_loop(map, start)
-    |> Enum.uniq()
     |> Enum.reject(fn x -> is_nil(x) end)
+    |> Enum.map(fn list -> MapSet.to_list(list) end)
     |> hd()
+    |> length()
     |> div(2)
   end
 
-  def part2(_args) do
+  def part2(args) do
+    {map, set} =
+      args
+      |> lines()
+      |> Enum.with_index()
+      |> Enum.reduce({%{}, MapSet.new()}, fn {line, y}, acc ->
+        String.graphemes(line)
+        |> Enum.with_index()
+        |> Enum.reduce(acc, fn {symbol, x}, {inner, set} ->
+          inner = Map.put(inner, {x, y}, symbol)
+          set = MapSet.put(set, {x, y})
+          {inner, set}
+        end)
+      end)
+
+    start = find_start(map)
+
+    steps =
+      find_loop(map, start)
+      |> Enum.reject(fn x -> is_nil(x) end)
+      |> hd()
+
+    not_in_path = MapSet.difference(set, steps) |> MapSet.to_list()
+    step_list = MapSet.to_list(steps)
+    {{max, _}, _} = Enum.max_by(map, fn {{x, _}, _} -> x end)
+
+    count_intersections(map, not_in_path, steps, max)
+  end
+
+  def count_intersections(map, points, steps, max) do
+    Enum.reduce(points, 0, fn {x, y}, counter ->
+      line =
+        if x < max - x do
+          0..(x - 1)
+        else
+          (x + 1)..max
+        end
+
+      line = Enum.map(line, fn line_x -> {line_x, y} end) |> MapSet.new()
+
+      intersections =
+        MapSet.intersection(steps, line)
+        |> Enum.map(fn {row, col} -> Map.get(map, {row, col}) end)
+        |> Enum.reject(fn sym -> sym in ["-", "L", "J"] end)
+
+      num_int = length(intersections)
+
+      if(rem(num_int, 2) == 0) do
+        counter
+      else
+        counter + 1
+      end
+    end)
   end
 end
