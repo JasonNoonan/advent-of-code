@@ -19,7 +19,7 @@ defmodule AdventOfCode.Day11Test do
     assert result == 374
   end
 
-  test "part2" do
+  test "part2 x10" do
     input = "...#......
 .......#..
 #.........
@@ -30,8 +30,24 @@ defmodule AdventOfCode.Day11Test do
 ..........
 .......#..
 #...#....."
-    result = part2(input)
+    result = part2(input, 10)
 
-    assert result
+    assert result == 1030
+  end
+
+  test "part2 x100" do
+    input = "...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#....."
+    result = part2(input, 100)
+
+    assert result == 8410
   end
 end

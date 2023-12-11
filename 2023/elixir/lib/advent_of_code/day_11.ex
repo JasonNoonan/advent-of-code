@@ -29,32 +29,30 @@ defmodule AdventOfCode.Day11 do
           end
       end
 
-    {empty_columns, empty_rows}
+    {empty_columns, empty_rows, universe_map}
   end
 
-  def map_expand({e_col, e_row}, universe_list) do
-    universe_list
-    |> Enum.with_index()
-    |> Enum.reduce([], fn {row, i}, acc ->
-      new_row =
-        row
-        |> Enum.with_index()
-        |> Enum.reduce([], fn {x, j}, inner ->
-          if j in e_col do
-            [x | [x | inner]]
-          else
-            [x | inner]
-          end
-        end)
-        |> Enum.reverse()
+  def expand(empty, x, multi) do
+    thresholds = Enum.filter(empty, fn filter -> x > filter end) |> length
 
-      if i in e_row do
-        [new_row | [new_row | acc]]
-      else
-        [new_row | acc]
-      end
-    end)
-    |> Enum.reverse()
+    if thresholds > 0 do
+      x + thresholds * multi
+    else
+      x
+    end
+  end
+
+  def map_expand({e_col, e_row, universe}, expand_by) do
+    for {{x, y}, val} <- universe, reduce: %{} do
+      acc ->
+        if val == "." do
+          acc
+        else
+          x = expand(e_col, x, expand_by)
+          y = expand(e_row, y, expand_by)
+          Map.put(acc, {x, y}, val)
+        end
+    end
   end
 
   def manhattan_distance({x1, y1}, {x2, y2}) do
@@ -90,24 +88,24 @@ defmodule AdventOfCode.Day11 do
   end
 
   def part1(args) do
-    universe_list =
-      args
-      |> lines()
-      |> Enum.map(&String.graphemes/1)
-
-    universe_map =
-      universe_list
-      |> list_to_map()
-
-    expanded_map =
-      find_empty(universe_map)
-      |> map_expand(universe_list)
-      |> list_to_map()
-
-    find_distance(expanded_map)
+    args
+    |> lines()
+    |> Enum.map(&String.graphemes/1)
+    |> list_to_map()
+    |> find_empty()
+    |> map_expand(1)
+    |> find_distance()
     |> Enum.sum()
   end
 
-  def part2(_args) do
+  def part2(args, expand) do
+    args
+    |> lines()
+    |> Enum.map(&String.graphemes/1)
+    |> list_to_map()
+    |> find_empty()
+    |> map_expand(expand - 1)
+    |> find_distance()
+    |> Enum.sum()
   end
 end
