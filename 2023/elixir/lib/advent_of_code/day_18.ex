@@ -17,29 +17,6 @@ defmodule AdventOfCode.Day18 do
     {x + distance, y}
   end
 
-  def find_area(points) do
-    shifted = Enum.slide(points, 0, -1)
-
-    points =
-      Enum.zip_with(points, shifted, fn {x, y}, {xn, yn} ->
-        {x * yn, y * xn}
-      end)
-
-    for {a, b} <- points, reduce: 0 do
-      area ->
-        area
-        |> Kernel.+(a)
-        |> Kernel.-(b)
-    end
-    |> abs()
-    |> Kernel.*(0.5)
-    |> dbg
-  end
-
-  def picks_theorem(area, length) do
-    area + length / 2 + 1
-  end
-
   def part1(args) do
     runs =
       args
@@ -72,8 +49,8 @@ defmodule AdventOfCode.Day18 do
     points
     |> Enum.reverse()
     |> List.flatten()
-    |> find_area()
-    |> picks_theorem(length)
+    |> shoelace_algo()
+    |> picks_theorem(length, :full)
   end
 
   def part2(args) do
@@ -112,7 +89,7 @@ defmodule AdventOfCode.Day18 do
     points
     |> Enum.reverse()
     |> List.flatten()
-    |> find_area()
-    |> picks_theorem(length)
+    |> shoelace_algo()
+    |> picks_theorem(length, :full)
   end
 end

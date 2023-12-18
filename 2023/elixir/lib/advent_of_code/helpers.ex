@@ -209,6 +209,48 @@ defmodule AdventOfCode.Helpers do
     Enum.chunk_every(enum, window, every, option)
   end
 
+  @doc """
+  Calculates the area of a polygon given a list of points that comprise that shape.
+
+  iex> shoelace_algo([{1, 1}, {4, 1}, {4, 4}, {1, 4}])
+  9.0
+
+  iex> shoelace_algo([{1, 1}, {5, 1}, {5, 5}, {1, 5}])
+  16.0
+  """
+  def shoelace_algo(points) do
+    shifted = Enum.slide(points, 0, -1)
+
+    points =
+      Enum.zip_with(points, shifted, fn {x, y}, {xn, yn} ->
+        {x * yn, y * xn}
+      end)
+
+    for {a, b} <- points, reduce: 0 do
+      area ->
+        area
+        |> Kernel.+(a)
+        |> Kernel.-(b)
+    end
+    |> abs()
+    |> Kernel.*(0.5)
+  end
+
+  @doc """
+  Calculates the internal area of a polygon
+
+  inner: 
+  """
+  def picks_theorem(area, perimeter_length, option \\ :inner) do
+    b = perimeter_length / 2
+
+    if option == :inner do
+      area - b + 1
+    else
+      area + b + 1
+    end
+  end
+
   defmodule Graph do
     @moduledoc """
      A simple graph data structure with edges and vertices
@@ -273,6 +315,45 @@ defmodule AdventOfCode.Helpers do
           ",\n     edges: ",
           to_doc(MapSet.to_list(graph.edges) |> Enum.map(&MapSet.to_list/1), opts)
         ])
+      end
+    end
+  end
+
+  defmodule Tree do
+    @moduledoc """
+    A simple tree data structure and helper functions for traversal algorithms
+    """
+
+    @type t :: %__MODULE__{value: any(), children: []}
+    defstruct [:value, :children]
+
+    @spec new :: t()
+    def new, do: %Tree{children: []}
+
+    @spec new(any(), []) :: t()
+    def new(value, children \\ []), do: %Tree{value: value, children: children}
+
+    @spec traverse(t(), fun()) :: []
+    @spec traverse(stack :: [], fun :: fun(), history :: []) :: []
+    def traverse(tree, fun) do
+      traverse([tree], fun, [])
+    end
+
+    def traverse([], _fun, history), do: history
+
+    def traverse([%__MODULE__{value: value, children: children} | stack], fun, history) do
+      case fun.(value, history) do
+        {:stop, response} ->
+          [response | history]
+
+        {:continue, response} ->
+          if is_list(children) do
+            children
+            |> Enum.reduce(stack, fn child, acc -> [child | acc] end)
+            |> traverse(fun, [response | history])
+          else
+            traverse(stack, fun, [response | history])
+          end
       end
     end
   end
