@@ -2,10 +2,7 @@ defmodule AdventOfCode.Day04 do
   alias AdventOfCode.Helpers
 
   def part1(args) do
-    puzzle =
-      args
-      |> Helpers.lines()
-      |> Enum.map(&String.graphemes/1)
+    puzzle = map_puzzle(args)
 
     map = Helpers.list_to_map(puzzle)
     found = MapSet.new()
@@ -24,6 +21,12 @@ defmodule AdventOfCode.Day04 do
   end
 
   def part2(_args) do
+  end
+
+  defp map_puzzle(args) do
+    args
+    |> Helpers.lines()
+    |> Enum.map(&String.graphemes/1)
   end
 
   defp try_solve(x, y, map, found) do
