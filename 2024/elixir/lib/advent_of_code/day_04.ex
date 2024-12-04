@@ -122,22 +122,10 @@ defmodule AdventOfCode.Day04 do
     ]
 
     [
-      solve_arm(arm_1, map) |> live_mas(),
-      solve_arm(arm_2, map) |> live_mas()
+      Enum.map(arm_1, &Map.get(map, &1, ".")) |> live_mas(),
+      Enum.map(arm_2, &Map.get(map, &1, ".")) |> live_mas()
     ]
     |> Enum.all?()
-  end
-
-  defp solve_arm(coords, map) do
-    Enum.reduce(coords, [], fn xy, acc ->
-      char = Map.get(map, xy)
-
-      if is_nil(char) do
-        acc
-      else
-        [char | acc]
-      end
-    end)
   end
 
   defp live_mas(arm) do
