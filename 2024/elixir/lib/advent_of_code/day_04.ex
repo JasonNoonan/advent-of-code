@@ -20,7 +20,28 @@ defmodule AdventOfCode.Day04 do
     |> Enum.count()
   end
 
-  def part2(_args) do
+  def part2(args) do
+    puzzle = map_puzzle(args)
+
+    map = Helpers.list_to_map(puzzle)
+
+    puzzle
+    |> Enum.with_index()
+    |> Enum.reduce(0, fn {row, y}, outer_acc ->
+      row
+      |> Enum.with_index()
+      |> Enum.reduce(outer_acc, fn {char, x}, inner_acc ->
+        if char == "A" do
+          if solve_part_2(x, y, map) do
+            inner_acc + 1
+          else
+            inner_acc
+          end
+        else
+          inner_acc
+        end
+      end)
+    end)
   end
 
   defp map_puzzle(args) do
@@ -28,6 +49,8 @@ defmodule AdventOfCode.Day04 do
     |> Helpers.lines()
     |> Enum.map(&String.graphemes/1)
   end
+
+  ### Part 1
 
   defp try_solve(x, y, map, found) do
     x_right = [x, x + 1, x + 2, x + 3]
@@ -80,6 +103,49 @@ defmodule AdventOfCode.Day04 do
     else
       {:error, :xmas_not_found}
     end
+  end
+
+  ### Part 2
+
+  defp solve_part_2(x, y, map) do
+    arm_1 =
+      [
+        {x - 1, y - 1},
+        {x, y},
+        {x + 1, y + 1}
+      ]
+
+    arm_2 = [
+      {x + 1, y - 1},
+      {x, y},
+      {x - 1, y + 1}
+    ]
+
+    [
+      solve_arm(arm_1, map) |> live_mas(),
+      solve_arm(arm_2, map) |> live_mas()
+    ]
+    |> Enum.all?()
+  end
+
+  defp solve_arm(coords, map) do
+    Enum.reduce(coords, [], fn xy, acc ->
+      char = Map.get(map, xy)
+
+      if is_nil(char) do
+        acc
+      else
+        [char | acc]
+      end
+    end)
+  end
+
+  defp live_mas(arm) do
+    result =
+      arm
+      |> List.to_string()
+
+    result == "MAS" or result == "SAM"
   end
 
   defp print_map(map, output) do
