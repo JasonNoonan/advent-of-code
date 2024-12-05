@@ -28,7 +28,7 @@ defmodule AdventOfCode.Day05 do
 
   defp parse_rules(rules) do
     Enum.reduce(rules, %{}, fn rule, acc ->
-      [first | [second | _none]] = String.split(rule, "|")
+      [first, second] = String.split(rule, "|")
 
       acc
       |> Map.update(first, %{before: [second]}, fn c ->
@@ -41,16 +41,25 @@ defmodule AdventOfCode.Day05 do
   end
 
   defp parse_updates(updates, rules) do
-    Enum.reduce(updates, [], fn row, acc ->
-      print_order = String.split(row, ",")
+    {updates, count} =
+      Enum.reduce(updates, {[], 0}, fn row, {acc, even_count} ->
+        print_order = String.split(row, ",")
+        even_count = if rem(length(print_order), 2) == 0, do: even_count + 1, else: even_count
 
-      if is_sorted?(print_order, rules) do
-        middle_index = get_middle_index(print_order)
-        [Enum.at(print_order, middle_index) | acc]
-      else
-        acc
-      end
-    end)
+        acc =
+          if is_sorted?(print_order, rules) do
+            middle_index = get_middle_index(print_order)
+            [Enum.at(print_order, middle_index) | acc]
+          else
+            acc
+          end
+
+        {acc, even_count}
+      end)
+
+    dbg(count)
+
+    updates
   end
 
   defp find_failed_orders(updates, rules) do
@@ -67,18 +76,11 @@ defmodule AdventOfCode.Day05 do
     end)
   end
 
+  # only account for odd row lengths
   defp get_middle_index(print_order) do
-    count =
-      print_order
-      |> Enum.count()
-
-    index = Integer.floor_div(count, 2)
-
-    if rem(count, 2) == 0 do
-      index - 1
-    else
-      index
-    end
+    print_order
+    |> Enum.count()
+    |> Integer.floor_div(2)
   end
 
   defp fix_ordering(print_orders, rules) do
