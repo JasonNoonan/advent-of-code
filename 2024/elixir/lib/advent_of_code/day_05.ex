@@ -30,36 +30,21 @@ defmodule AdventOfCode.Day05 do
     Enum.reduce(rules, %{}, fn rule, acc ->
       [first, second] = String.split(rule, "|")
 
-      acc
-      |> Map.update(first, %{before: [second]}, fn c ->
-        Map.update(c, :before, [second], fn curr -> [second | curr] end)
-      end)
-      |> Map.update(second, %{after: [first]}, fn c ->
-        Map.update(c, :after, [first], fn curr -> [first | curr] end)
-      end)
+      Map.update(acc, second, [first], fn c -> [first | c] end)
     end)
   end
 
   defp parse_updates(updates, rules) do
-    {updates, count} =
-      Enum.reduce(updates, {[], 0}, fn row, {acc, even_count} ->
-        print_order = String.split(row, ",")
-        even_count = if rem(length(print_order), 2) == 0, do: even_count + 1, else: even_count
+    Enum.reduce(updates, [], fn row, acc ->
+      print_order = String.split(row, ",")
 
-        acc =
-          if is_sorted?(print_order, rules) do
-            middle_index = get_middle_index(print_order)
-            [Enum.at(print_order, middle_index) | acc]
-          else
-            acc
-          end
-
-        {acc, even_count}
-      end)
-
-    dbg(count)
-
-    updates
+      if is_sorted?(print_order, rules) do
+        middle_index = get_middle_index(print_order)
+        [Enum.at(print_order, middle_index) | acc]
+      else
+        acc
+      end
+    end)
   end
 
   defp find_failed_orders(updates, rules) do
@@ -97,31 +82,11 @@ defmodule AdventOfCode.Day05 do
 
   defp sort_pages(print_order, rules) do
     Enum.sort(print_order, fn x, y ->
-      try_rules(x, y, rules)
+      Map.has_key?(rules, y) and x in rules[y]
     end)
   end
 
   defp is_sorted?(print_order, rules) do
     print_order == sort_pages(print_order, rules)
-  end
-
-  defp try_rules(x, y, rules) do
-    if try_rule(x, y, rules, :x_before) do
-      true
-    else
-      false
-    end
-  end
-
-  defp try_rule(x, y, rules, :x_before) do
-    if Map.has_key?(rules, x) and Map.has_key?(rules[x], :before) and y in rules[x][:before] do
-      true
-    else
-      try_rule(x, y, rules, :y_after)
-    end
-  end
-
-  defp try_rule(x, y, rules, :y_after) do
-    Map.has_key?(rules, y) and Map.has_key?(rules[y], :after) and x in rules[y][:after]
   end
 end
