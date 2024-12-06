@@ -3,12 +3,20 @@ defmodule AdventOfCode.Day06Test do
 
   import AdventOfCode.Day06
 
-  @tag :skip
   test "part1" do
-    input = nil
+    input = "....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#..."
     result = part1(input)
 
-    assert result
+    assert result == 41
   end
 
   @tag :skip
