@@ -107,6 +107,37 @@ defmodule AdventOfCode.Helpers do
   end
 
   @doc """
+  Finds the slope of the line between two points.
+
+  Returns either an :ok tuple with a nested tuple containing the `m` and `b`
+  values (the slope as a float and the point at which the line intercepts the
+  y-axis, the y-intercept as a float.), or an :error tuple indicating that the
+  points create a vertical line. 
+
+  Also returns :error, :same_point if you try to pass it the same point twice.
+  """
+  @spec find_slope({number, number}, {number, number}) ::
+          {:ok, {float, float}} | {:error, :undefined} | {:error, :same_point}
+  def find_slope({x, y}, {x, y}), do: {:error, :same_point}
+  def find_slope({x, _y1}, {x, _y2}), do: {:error, :undefined}
+
+  def find_slope({x1, y1}, {x2, y2}) do
+    m = (y2 - y1) / (x2 - x1)
+    b = y1 - m * x1
+
+    {:ok, {m, b}}
+  end
+
+  @doc """
+  Given a point, a slope, and the y-intercept of a line, determines if the
+  point is on the given line. 
+
+  Returns boolean value indicating if the point is on that line.
+  """
+  @spec in_line?({number, number}, float(), float()) :: boolean()
+  def in_line?({x, y}, m, b), do: y == m * x + b
+
+  @doc """
   Gets all adjacent points on a map of XY coordinates to a point
 
   Pass `all: false` to not include diagonally adjacent points
