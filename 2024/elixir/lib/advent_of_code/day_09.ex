@@ -1,4 +1,129 @@
 defmodule AdventOfCode.Day09 do
+  defmodule WholeFiles do
+    use Agent
+
+    def start_link() do
+      Agent.start_link(fn -> %{next_index: 0, files: %{}, free: %{}} end,
+        name: __MODULE__
+      )
+    end
+
+    def assign_new_block(".", 0), do: Agent.update(__MODULE__, fn x -> x end)
+
+    def assign_new_block(".", size) do
+      Agent.update(__MODULE__, fn %{next_index: index, free: free} = state ->
+        %{state | next_index: index + size, free: Map.put(free, index, size)}
+      end)
+    end
+
+    def assign_new_block(value, size) do
+      Agent.update(__MODULE__, fn %{next_index: index, files: files} = state ->
+        %{
+          state
+          | next_index: index + size,
+            files: Map.put(files, index, {value, size})
+        }
+      end)
+    end
+
+    def get_disk_map() do
+      Agent.get(__MODULE__, fn %{free: free, files: files} ->
+        files
+        |> Map.merge(free)
+        |> Enum.sort_by(fn {k, _v} -> k end)
+        |> Enum.reduce("", fn
+          {_k, {v, s}}, acc ->
+            for _i <- 1..s, reduce: acc do
+              line ->
+                line <> "#{v}"
+            end
+
+          {_k, v}, acc ->
+            for _i <- 1..v, reduce: acc do
+              line ->
+                line <> "."
+            end
+        end)
+      end)
+    end
+
+    def try_move_file(file_index) do
+      Agent.update(__MODULE__, fn %{free: free, files: files} = state ->
+        {value, size} = Map.get(files, file_index)
+
+        with {:ok, {k, _v}} <- find_free_space(free, file_index, size) do
+          files =
+            files
+            |> Map.delete(file_index)
+            |> Map.put(k, {value, size})
+
+          free =
+            resize_and_move_free_space(free, k, size, file_index)
+
+          %{state | free: free, files: files}
+        else
+          {:error, :no_fit} ->
+            state
+        end
+      end)
+    end
+
+    def sorted_files() do
+      Agent.get(__MODULE__, fn %{files: files} ->
+        Enum.sort_by(files, fn {_k, {v, _size}} -> v end, :desc)
+      end)
+    end
+
+    def calculate_block_value() do
+      Agent.get(__MODULE__, fn %{files: files, free: free} ->
+        files
+        |> Map.merge(free)
+        |> Enum.sort_by(fn {k, _v} -> k end)
+        |> Enum.reduce(0, fn
+          {k, {v, s}}, acc ->
+            for i <- k..(k + s - 1), reduce: acc do
+              a ->
+                a + i * v
+            end
+
+          _free, acc ->
+            acc
+        end)
+      end)
+    end
+
+    defp find_free_space(free, index, space) do
+      free
+      |> Enum.sort_by(fn {k, _v} -> k end)
+      |> Enum.find(fn
+        {k, v} when k < index and v >= space -> true
+        _else -> false
+      end)
+      |> case do
+        nil -> {:error, :no_fit}
+        {k, v} -> {:ok, {k, v}}
+      end
+    end
+
+    defp resize_and_move_free_space(free, old_index, size, file_index) do
+      current_size = Map.get(free, old_index)
+
+      free =
+        free
+        |> Map.delete(old_index)
+        |> Map.put(file_index, size)
+
+      free =
+        if current_size != size do
+          Map.put(free, old_index + size, current_size - size)
+        else
+          free
+        end
+
+      free
+    end
+  end
+
   defmodule FileSystem do
     use Agent
 
@@ -7,15 +132,6 @@ defmodule AdventOfCode.Day09 do
     end
 
     def assign_new_block(".", 0), do: Agent.update(__MODULE__, fn x -> x end)
-
-    # I don't know if this is correct, making an assumption and testing
-    def assign_new_block(_, 0) do
-      dbg("found file of length zero")
-
-      Agent.update(__MODULE__, fn state ->
-        Map.update!(state, :next_index, fn i -> i + 1 end)
-      end)
-    end
 
     def assign_new_block(value, size) do
       Agent.update(__MODULE__, fn %{next_index: index, disk: disk} ->
@@ -102,17 +218,26 @@ defmodule AdventOfCode.Day09 do
   def part1(args) do
     FileSystem.start_link()
 
-    to_disk_map(args)
+    to_disk_map(args, FileSystem)
     compact_files()
 
-    FileSystem.get_disk_map() |> dbg
     FileSystem.calculate_block_value()
   end
 
-  def part2(_args) do
+  def part2(args) do
+    WholeFiles.start_link()
+
+    to_disk_map(args, WholeFiles)
+
+    WholeFiles.sorted_files()
+    |> Enum.each(fn {k, {_v, _s}} ->
+      WholeFiles.try_move_file(k)
+    end)
+
+    WholeFiles.calculate_block_value()
   end
 
-  defp to_disk_map(args) do
+  defp to_disk_map(args, fun) do
     [input] =
       args
       |> String.split("\n", trim: true)
@@ -123,12 +248,12 @@ defmodule AdventOfCode.Day09 do
     |> Enum.reduce({0, 0}, fn
       x, {counter, id} when rem(counter, 2) == 0 ->
         # file
-        FileSystem.assign_new_block(id, x)
+        fun.assign_new_block(id, x)
         {counter + 1, id + 1}
 
       x, {counter, id} ->
         # free space
-        FileSystem.assign_new_block(".", x)
+        fun.assign_new_block(".", x)
         {counter + 1, id}
     end)
   end
