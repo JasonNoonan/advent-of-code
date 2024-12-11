@@ -5,28 +5,30 @@ defmodule AdventOfCode.Day10 do
     map = parse_map(args)
     start_locations = get_positions_by_height(map, 0)
     targets = get_positions_by_height(map, 9)
+    graph = map_to_graph(map)
 
-    for {th, _v} <- start_locations, reduce: 0 do
+    for th <- start_locations, reduce: 0 do
       acc ->
-        for {tar, _val} <- targets do
-          cost =
-            Helpers.dijkstras(map, th, tar, fn
-              cost, start, next when next - start == 1 ->
-                cost
-
-              _cost, _start, _next ->
-                :infinity
-            end)
-
-          # cost 0 means we found a happy path
-          if cost == 0, do: 1, else: 0
+        for tar <- targets, reduce: acc do
+          inner ->
+            if Graph.dijkstra(graph, th, tar), do: inner + 1, else: inner
         end
-        |> Enum.sum()
-        |> Kernel.+(acc)
     end
   end
 
-  def part2(_args) do
+  def part2(args) do
+    map = parse_map(args)
+    start_locations = get_positions_by_height(map, 0)
+    targets = get_positions_by_height(map, 9)
+    graph = map_to_graph(map)
+
+    for th <- start_locations, reduce: 0 do
+      paths ->
+        for t <- targets, reduce: paths do
+          acc ->
+            acc + (Graph.get_paths(graph, th, t) |> Enum.count())
+        end
+    end
   end
 
   defp parse_map(args) do
@@ -45,6 +47,22 @@ defmodule AdventOfCode.Day10 do
     |> Enum.filter(fn
       {_coords, ^target_height} -> true
       _else -> false
+    end)
+    |> Enum.sort_by(&{elem(elem(&1, 0), 0), elem(elem(&1, 0), 1)})
+  end
+
+  defp map_to_graph(map) do
+    Enum.reduce(map, Graph.new(), fn {point, val}, graph ->
+      # graph = Graph.add_vertex(graph, {point, val})
+
+      for {p, v} <- Helpers.get_adj(map, point, all: false), reduce: graph do
+        g ->
+          if v - val == 1 do
+            Graph.add_edge(g, {point, val}, {p, v})
+          else
+            g
+          end
+      end
     end)
   end
 end

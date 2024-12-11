@@ -23,6 +23,7 @@ defmodule AdventOfCode.MixProject do
     [
       {:benchee, "~> 1.0"},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:libgraph, "~> 0.16.0"},
       {:ssl_verify_fun, "~> 1.1.7", manager: :rebar3, override: true}
     ]
   end

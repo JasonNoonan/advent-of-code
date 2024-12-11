@@ -283,6 +283,8 @@ defmodule AdventOfCode.Helpers do
   end
 
   defmodule Graph do
+    alias AdventOfCode.Helpers
+
     @moduledoc """
      A simple graph data structure with edges and vertices
     """
@@ -334,6 +336,38 @@ defmodule AdventOfCode.Helpers do
     @spec neighbors(%Graph{}, any) :: list
     def neighbors(%Graph{neighbors: neighbors}, vertex) do
       Map.get(neighbors, vertex) |> MapSet.to_list()
+    end
+
+    def map_to_graph(map, edge_fun) do
+      Enum.reduce(map, Graph.new(), fn {point, val}, graph ->
+        graph = Graph.add_vertex(graph, {point, val})
+
+        for {p, v} <- Helpers.get_adj(map, point), reduce: graph do
+          g ->
+            case edge_fun.({point, val}, {p, v}) do
+              {:ok, edge} -> Graph.add_edge(g, edge)
+              {:error, _no} -> g
+            end
+        end
+      end)
+    end
+
+    def bfs(graph, start) do
+      dbg("start: #{inspect(start)}")
+      bfs(%{}, graph, neighbors(graph, start), [], 1)
+    end
+
+    defp bfs(paths, _, [], [], _), do: paths
+
+    defp bfs(paths, graph, [], neighbors, layer), do: bfs(paths, graph, neighbors, [], layer + 1)
+
+    defp bfs(paths, graph, [node | tail], neighbors, layer) when is_map_key(paths, node) do
+      bfs(paths, graph, tail, neighbors, layer)
+    end
+
+    defp bfs(paths, graph, [node | tail], neighbors, layer) do
+      Map.put(paths, node, layer)
+      |> bfs(graph, tail, neighbors(graph, node) ++ neighbors, layer)
     end
 
     defimpl Inspect, for: Graph do
